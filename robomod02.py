@@ -63,7 +63,7 @@ class RoboModHandler:
          self.client = zulip.Client(config_file="./zuliprc")
          self.notepad = ""
          self.notepad_type = "users"
-         self.NOTEPAD_TYPES_ALLOWED = ['users','streams']
+         self.NOTEPAD_TYPES_ALLOWED = ['users','streams'] #maybe I should put this constant outside?
 
          self.testing()
     
@@ -93,11 +93,7 @@ class RoboModHandler:
         
         notepad_type <users, streams, groups>  -- sets the type of the notepad.
         
-        notepad_to_group <groups>
-        
         notepad_to_streams <streams>
-        
-        notepad_add_group <users>
         
         '''
 
