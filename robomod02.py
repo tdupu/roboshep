@@ -34,6 +34,8 @@ class RoboModHandler:
          self.client = zulip.Client(config_file="/Users/taylordupuy/Dropbox/computing/dupuy-zulip-bots/zuliprc")
          self.notepad = ""
          self.notepad_type = "users"
+         self.NOTEPAD_TYPES_ALLOWED = ['users','streams']
+         
         
     
     
@@ -105,8 +107,12 @@ class RoboModHandler:
             msg = self.print_notepad()
             
         elif command_word == 'notepad_type':
-            self.notepad_type = user_inputs[0]
-            msg = "notepad type: %s " % self.notepad_type
+            proposed_type = user_inputs[0]
+            if self.NOTEPAD_TYPES_ALLOWED.count(proposed_type)>0:
+                self.notepad_type = proposed_type
+                msg = "notepad type: %s " % self.notepad_type
+            else:
+                msg = "type %s not allowed! \n No changes made. " % proposed_type
                    
         elif command_word == 'print_notepad':
             msg = self.print_notepad()
@@ -178,40 +184,64 @@ class RoboModHandler:
 
     def notepad_to_streams(self, data, datatype, streamnames):
         
+        msg = ''
+        
         weird_dict_of_streams = self.client.get_streams()
         list_of_dicts_of_streams = weird_dict_of_streams['streams']
+        #print(list_of_dicts_of_streams) #this works
         
         my_streams = []
         mystreamquery = self.make_inclusive_search_key('streamnames')
         
         for dict0 in list_of_dicts_of_streams:
             if re.search(mystreamquery,dict0['name']):
+                #print(dict0['stream_id']) #neverprinted
                 my_streams.append(dict0)
+                msg = msg+'taylor was here'
         
-        if datatype == 'user_groups':
-            weird_dict_of_user_groups = self.client.get_user_groups()
-            print(weird_dict_of_user_groups)
-            list_of_dicts_of_user_groups =weird_dict_of_user_groups['user_groups']
+        #if datatype == 'user_groups':
+        #    weird_dict_of_user_groups = self.client.get_user_groups()
+        #    print(weird_dict_of_user_groups)
+        #    list_of_dicts_of_user_groups =weird_dict_of_user_groups['user_groups']
+        #
+        #    my_user_groups = []
+        #    myuserquery = self.make_inclusive_search_key(self.notepad)
+        #
+        #    for dict0 in list_of_dicts_of_user_groups:
+        #        if re.search(myuserquery,dict0['name']):
+        #            my_user_groups.append(dict0)
+        #
+        #    my_principals = [] #this is what Zulip calls lists of user_id's or emails
+        #    for dict0 in my_user_groups:
+        #        members = dict0['members']
+        #        for member in members:
+        #            if my_principals.count(member)==0:
+        #                my_principals.append(member)
+        #
+        
+        if datatype == 'streams':
+            my_streams2 = []
+            mystreamquery2 = self.make_inclusive_search_key('streamnames')
             
-            my_user_groups = []
-            myuserquery = self.make_inclusive_search_key(self.notepad)
-            
-            for dict0 in list_of_dicts_of_user_groups:
-                if re.search(myuserquery,dict0['name']):
-                    my_user_groups.append(dict0)
+            for dict0 in list_of_dicts_of_streams:
+                if re.search(mystreamquery2,dict0['name']):
+                    print(dict0)
+                    my_streams2.append(dict0)
                     
             my_principals = [] #this is what Zulip calls lists of user_id's or emails
-            for dict0 in my_user_groups:
-                members = dict0['members']
-                for member in members:
-                    if my_principals.count(member)==0:
-                        my_principals.append(member)
-                        
-            
-            
+            for dict0 in my_streams2:
+                    members = dict0['members']
+                    #msg = msg + "%s" % members never printed
+                    for member in members:
+                        if my_principals.count(member)==0:
+                            my_principals.append(member)
+                            
         #final touches
-        result = self.client.add_subscriptions(steams=my_streams, principals=my_principals)
-        return result['msg']
+        #print(my_principals) #empty
+        #print(my_streams) #empty
+        self.client.add_subscriptions(streams=my_streams, principals=my_principals)
+        msg = msg + 'added %s to %s ' % (my_principals, my_streams)
+        return msg
 
 
 
