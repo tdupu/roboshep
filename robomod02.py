@@ -8,6 +8,34 @@ import zulip
 #import python3 #don't do this, it breaks.
 import re #https://docs.python.org/3/library/re.html
 
+HELP_MESSAGE = """
+            Commands: 
+
+            notepad <some text>
+            -- stores text as a list of words in the notepad (to be used later for execution).
+            
+            notepad_type <mytype>
+            -- sets the type of the notepad. To be used later.
+            
+            print_notepad
+            -- shows what is currently on the notepad
+            
+            notepad_to_group <groups>
+            -- moves the whatever is stored in the notepad to the list of groups given.
+            
+            notepad_to_streams <streams>
+            -- moves whatever is stored in the notepad to the designated streams.
+            -- streams are matched from the begining of the word so for example if you run
+            >notepad_to_streams D
+            it will convert whatever is in the notepad to users then add those to the streams which have names starting with the letter D.
+            
+            notepad_to_usergroup <users>
+            -- moves whatever is in the notepad to the usergroups described
+            
+            notepad_to_agittoc_group
+            -- converts whatever is in the notepad to users then adds them to both the corresponding group and stream.
+            
+            """ 
 
 
 class RoboModHandler:
@@ -31,14 +59,32 @@ class RoboModHandler:
          This is how the instantiate a client in the dropbox_share bot.
          I'm assuming this runs at the startup.
          '''
-         self.client = zulip.Client(config_file="/Users/taylordupuy/Dropbox/computing/dupuy-zulip-bots/zuliprc")
+         # self.client = zulip.Client(config_file="/Users/taylordupuy/Dropbox/computing/dupuy-zulip-bots/zuliprc")
+         self.client = zulip.Client(config_file="./zuliprc")
          self.notepad = ""
          self.notepad_type = "users"
          self.NOTEPAD_TYPES_ALLOWED = ['users','streams']
-         
+
+         self.testing()
+    
+    def testing(self) -> None:
+        """
+        For dev-testing without sending messages to the bot
+        """
         
-    
-    
+        print("ping")
+
+        # Get all streams
+        # stream fields: ['name', 'stream_id', 'description', 'rendered_description', 'invite_only', 'is_web_public', 'stream_post_policy', 'history_public_to_subscribers', 'first_message_id', 'message_retention_days', 'is_announcement_only']
+        all_streams = self.client.get_streams()["streams"]
+        print(all_streams[0].keys())
+        print("Names of all streams:", [stream["name"] for stream in all_streams])
+        
+
+        # # Get all users
+        # # user fields: ['email', 'user_id', 'avatar_version', 'is_admin', 'is_owner', 'is_guest', 'is_bot', 'full_name', 'timezone', 'is_active', 'date_joined', 'avatar_url', 'bot_type', 'bot_owner_id']
+        # all_users = self.client.get_members()['members']
+         
     def usage(self) -> str:
         return '''
         AGITOCC sheep dog. (a bot for sorting)
@@ -70,60 +116,30 @@ class RoboModHandler:
         command_word = user_words[0]
         user_inputs = user_words[1:]
         
-        input_text = ""
-        for word in user_inputs:
-            input_text = word + "," + input_text
+        input_text = ",".join(user_inputs)
             
         if command_word == 'help':
-            msg="""
-            notepad <some text>
-            -- stores text as a list of words in the notepad (to be used later for execution).
-            
-            notepad_type <mytype>
-            -- sets the type of the notepad. To be used later.
-            
-            print_notepad
-            -- shows what is currently on the notepad
-            
-            notepad_to_group <groups>
-            -- moves the whatever is stored in the notepad to the list of groups given.
-            
-            notepad_to_streams <streams>
-            -- moves whatever is stored in the notepad to the designated streams.
-            -- streams are matched from the begining of the word so for example if you run
-            >notepad_to_streams D
-            it will convert whatever is in the notepad to users then add those to the streams which have names starting with the letter D.
-            
-            notepad_to_usergroup <users>
-            -- moves whatever is in the notepad to the usergroups described
-            
-            notepad_to_agittoc_group
-            -- converts whatever is in the notepad to users then adds them to both the corresponding group and stream.
-            
-            """
-        
-        if command_word == 'notepad':
+            msg=HELP_MESSAGE
+        elif command_word == 'notepad':
             self.notepad = user_inputs
-            msg = self.print_notepad()
-            
+            msg = self.print_notepad()   
         elif command_word == 'notepad_type':
             proposed_type = user_inputs[0]
-            if self.NOTEPAD_TYPES_ALLOWED.count(proposed_type)>0:
+            if proposed_type in self.NOTEPAD_TYPES_ALLOWED:
                 self.notepad_type = proposed_type
                 msg = "notepad type: %s " % self.notepad_type
             else:
                 msg = "type %s not allowed! \n No changes made. " % proposed_type
-                   
         elif command_word == 'print_notepad':
             msg = self.print_notepad()
-            
         elif command_word == 'print_notepad_type':
             msg = self.print_notepad_type()
-            
         elif command_word == 'notepad_to_streams':
             msg = self.notepad_to_streams(self.notepad, self.notepad_type, user_inputs)
-            
+        elif command_word == 'ping':
+            msg='pong!'
         else:
+            print("Not a command!")
             msg = "command word: %s" % command_word + "\n" + "input: %s" % input_text + "\n" + "notepad is: %s " % self.notepad
         
         bot_handler.send_reply(message,msg)
@@ -140,6 +156,13 @@ class RoboModHandler:
     
     def print_notepad_type(self):
         return "notepad_type = %s" % self.notepad_type
+
+    ########################################
+    #### Adding self to stream
+    ########################################
+
+    def add_to_stream(user, stream_name):
+        pass
     
     
     ########################################
@@ -156,16 +179,16 @@ class RoboModHandler:
         
         we could have also used "starts with"
         """
-        search_key = "("
-        n = len(words)
+        # search_key = "("
+        # n = len(words)
         
-        for i in range(n-1):
-            search_key = search_key + words[i]+ "|"
+        # for i in range(n-1):
+        #     search_key = search_key + words[i]+ "|"
         
-        #we do the last one separately to close it off
-        search_key = "^"+search_key+words[n-1]+")"
+        # #we do the last one separately to close it off
+        # search_key = "^"+search_key+words[n-1]+")"
         
-        return search_key
+        return f"^({'|'.join(words)})"
         
     def match_key(self, my_list_of_dicts, dictionary_key, myvalues):
         """
