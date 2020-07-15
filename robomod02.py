@@ -74,11 +74,11 @@ class RoboModHandler:
         
         print("ping")
 
-        # Get all streams
-        # stream fields: ['name', 'stream_id', 'description', 'rendered_description', 'invite_only', 'is_web_public', 'stream_post_policy', 'history_public_to_subscribers', 'first_message_id', 'message_retention_days', 'is_announcement_only']
-        all_streams = self.client.get_streams()["streams"]
-        print(all_streams[0].keys())
-        print("Names of all streams:", [stream["name"] for stream in all_streams])
+        # # Get all streams
+        # # stream fields: ['name', 'stream_id', 'description', 'rendered_description', 'invite_only', 'is_web_public', 'stream_post_policy', 'history_public_to_subscribers', 'first_message_id', 'message_retention_days', 'is_announcement_only']
+        # all_streams = self.client.get_streams()["streams"]
+        # print(all_streams[0].keys())
+        # print("Names of all streams:", [stream["name"] for stream in all_streams])
         
 
         # # Get all users
@@ -107,10 +107,16 @@ class RoboModHandler:
         This is the is the main function for message handling.
         
         All of the things you can read off of a message are here:
-        https://zulipchat.com/api/get-message
+        https://zulipchat.com/api/get-messages
         
         """
-        
+
+        # stuff in a message: 'id', 'sender_id', 'content', 'recipient_id', 'timestamp', 'client', 'subject', 'topic_links', 'is_me_message', 'reactions', 'submessages', 'sender_full_name', 'sender_short_name', 'sender_email', 'sender_realm_str', 'display_recipient', 'type', 'stream_id', 'avatar_url', 'content_type', 'full_content'
+
+        # Ignore messages from Notification Bot
+        if message['sender_full_name'] == 'Notification Bot':
+            return
+
         user_text = message['content']
         user_words = user_text.split()
         command_word = user_words[0]
@@ -118,6 +124,7 @@ class RoboModHandler:
         
         input_text = ",".join(user_inputs)
             
+        msg = ""
         if command_word == 'help':
             msg=HELP_MESSAGE
         elif command_word == 'notepad':
@@ -130,6 +137,13 @@ class RoboModHandler:
                 msg = "notepad type: %s " % self.notepad_type
             else:
                 msg = "type %s not allowed! \n No changes made. " % proposed_type
+        elif command_word == 'add_me_to':
+            stream_name = " ".join(user_inputs)
+            user_id = message["sender_id"]
+            msg = self.add_sender_to_stream(user_id, stream_name)
+        elif command_word == 'list':
+            if user_inputs[0] == 'streams':
+                msg = f"{self.get_all_stream_names()}"
         elif command_word == 'print_notepad':
             msg = self.print_notepad()
         elif command_word == 'print_notepad_type':
@@ -142,7 +156,8 @@ class RoboModHandler:
             print("Not a command!")
             msg = "command word: %s" % command_word + "\n" + "input: %s" % input_text + "\n" + "notepad is: %s " % self.notepad
         
-        bot_handler.send_reply(message,msg)
+        if msg != "":
+            bot_handler.send_reply(message,msg)
         
     ########################################
     #### Commands that execute something and return msg
@@ -161,8 +176,25 @@ class RoboModHandler:
     #### Adding self to stream
     ########################################
 
-    def add_to_stream(user, stream_name):
-        pass
+    def add_sender_to_stream(self, user_id, stream_name):
+        # https://zulipchat.com/api/subscribe
+        # returns message
+
+        # validate stream_name
+        stream_names = self.get_all_stream_names()
+        if stream_name not in stream_names:
+            return f"Invalid stream name: '{stream_name}'"
+        if not stream_name.startswith("Group"):
+            return f"You can only be added to streams starting with 'Group'!"
+        result = self.client.add_subscriptions(
+            streams=[{'name': stream_name}],
+            principals=[user_id])
+        print(result)
+        return f"Added you to {stream_name}!"
+
+    def get_all_stream_names(self) -> List:
+        all_streams = self.client.get_streams()["streams"]
+        return [stream["name"] for stream in all_streams]
     
     
     ########################################
