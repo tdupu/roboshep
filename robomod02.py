@@ -26,7 +26,9 @@ HELP_MESSAGE = """
             notepad_to_streams <streams>
             -- moves whatever is stored in the notepad to the designated streams.
             -- streams are matched from the begining of the word so for example if you run
-            >notepad_to_streams D
+            
+                    >notepad_to_streams D
+            
             it will convert whatever is in the notepad to users then add those to the streams which have names starting with the letter D.
             
             notepad_to_usergroup <users>
@@ -248,7 +250,7 @@ class RoboModHandler:
             if re.search(mystreamquery,dict0['name']):
                 #print(dict0['stream_id']) #neverprinted
                 my_streams.append(dict0)
-                msg = msg+'taylor was here'
+                msg = msg+'taylor was here' #this was me trying to debug
         
         #if datatype == 'user_groups':
         #    weird_dict_of_user_groups = self.client.get_user_groups()
