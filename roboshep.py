@@ -8,6 +8,7 @@ import zulip
 #import python3 #don't do this, it breaks.
 import re #https://docs.python.org/3/library/re.html
 from openpyxl import * #I had to install this using pip3, this is for excel
+import table_editor.py
 
 
 HELP_MESSAGE = """
@@ -133,22 +134,26 @@ class RoboModHandler:
             msg = self.print_notepad()
             
         elif command_word == 'find_me_a_group':
+            #
+            # This is all untested
+            #
             zulip_id = message['sender_id']
             email = message['sender_email']
             timestamp = message['timestamp']
             
-            workbook = load_workbook(filename='agittoc.xlsx')
+            workbook = load_workbook('agittoc.xlsx')
             seeking_group_sheet = workbook["seeking_group"]
             #add new entry to with zulip_id and email to sheet
             
         elif command_word == 'get_more_members':
+            #
+            # This is all untested
+            #
             msg = "NOT IMPLEMENTED, but... this will add you to a list of groups looking for new members"
             stream_id = message['stream_id']
             timestamp = message['timestamp']
             workbook = load_workbook(filename='agittoc.xlsx')
             seeking_members_sheet = workbook["seeking_members"]
-            
-            
             
         elif command_word == 'this_group_is_dead":
             msg = "NOT IMPLEMENTED, but... this will add this stream to a list of inactive streams so new members will not be added to this stream."

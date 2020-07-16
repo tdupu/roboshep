@@ -1,7 +1,7 @@
+import table_functions
 from openpyxl import *
-import table_functions.py
 
-Class SheetObject:
+class SheetObject:
     """
     A wrapper to help work with excel_spreadsheets for sheets of openpyxl.
     
@@ -14,7 +14,9 @@ Class SheetObject:
     >
     
     """
-    __init__(self,user_filename,user_sheetname):
+    
+    
+    def __init__(self,user_filename,user_sheetname):
         """
         To instantiate such a class we just need to pass it an openpyxl sheet.
         """
@@ -54,7 +56,7 @@ Class SheetObject:
         elif is_full == True:
             return set_of_entry_keys == self.set_of_keys
         else:
-            raise ValueError('is_full must be True or False)
+            raise ValueError('is_full must be True or False')
 
         
     def append(self, new_entry):
@@ -88,7 +90,7 @@ Class SheetObject:
                 
                 #if the row is a match, throw the dictionary into the list of matches
                 if is_subdictionary(partial_entry,row_as_dictionary):
-                    matches.append(row_as_dictionary):
+                    matches.append(row_as_dictionary)
                     
             return matches
             
