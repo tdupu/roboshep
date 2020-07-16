@@ -7,6 +7,8 @@ from typing import Any, Dict, List, Tuple
 import zulip
 #import python3 #don't do this, it breaks.
 import re #https://docs.python.org/3/library/re.html
+from openpyxl import * #I had to install this using pip3, this is for excel
+
 
 HELP_MESSAGE = """
             Commands: 
@@ -125,9 +127,38 @@ class RoboModHandler:
         msg = ""
         if command_word == 'help':
             msg=HELP_MESSAGE
+            
         elif command_word == 'notepad':
             self.notepad = user_inputs
-            msg = self.print_notepad()   
+            msg = self.print_notepad()
+            
+        elif command_word == 'find_me_a_group':
+            zulip_id = message['sender_id']
+            email = message['sender_email']
+            timestamp = message['timestamp']
+            
+            workbook = load_workbook(filename='agittoc.xlsx')
+            seeking_group_sheet = workbook["seeking_group"]
+            #add new entry to with zulip_id and email to sheet
+            
+        elif command_word == 'get_more_members':
+            msg = "NOT IMPLEMENTED, but... this will add you to a list of groups looking for new members"
+            stream_id = message['stream_id']
+            timestamp = message['timestamp']
+            workbook = load_workbook(filename='agittoc.xlsx')
+            seeking_members_sheet = workbook["seeking_members"]
+            
+            
+            
+        elif command_word == 'this_group_is_dead":
+            msg = "NOT IMPLEMENTED, but... this will add this stream to a list of inactive streams so new members will not be added to this stream."
+            
+            #msg = "This stream is no longer accepting new members."
+        
+        elif command_word == 'resolve_wait_list':
+            msg = "NOT IMPLEMENTED YET"
+            #we will match people from the lists looking for new members and the list looking for old members.
+            
         elif command_word == 'notepad_type':
             proposed_type = user_inputs[0]
             if proposed_type in self.NOTEPAD_TYPES_ALLOWED:
@@ -135,21 +166,29 @@ class RoboModHandler:
                 msg = "notepad type: %s " % self.notepad_type
             else:
                 msg = "type %s not allowed! \n No changes made. " % proposed_type
+                
         elif command_word == 'add_me_to':
+            #maybe this should be "subscribe" to go along with their lingo
             stream_name = " ".join(user_inputs)
             user_id = message["sender_id"]
             msg = self.add_sender_to_stream(user_id, stream_name)
+            
         elif command_word == 'list':
             if user_inputs[0] == 'streams':
                 msg = f"{self.get_all_stream_names()}"
+                
         elif command_word == 'print_notepad':
             msg = self.print_notepad()
+            
         elif command_word == 'print_notepad_type':
             msg = self.print_notepad_type()
+            
         elif command_word == 'notepad_to_streams':
             msg = self.notepad_to_streams(self.notepad, self.notepad_type, user_inputs)
+            
         elif command_word == 'ping':
             msg='pong!'
+            
         else:
             print("Not a command!")
             msg = "command word: %s" % command_word + "\n" + "input: %s" % input_text + "\n" + "notepad is: %s " % self.notepad
