@@ -14,13 +14,15 @@ Class SheetObject:
     >
     
     """
-    __init__(self,excel_worksheet):
+    __init__(self,user_filename,user_sheetname):
         """
         To instantiate such a class we just need to pass it an openpyxl sheet.
         """
         #read off the first row of the spreadsheet keep track of which column has which entry
-        
-        self.sheet = excel_worksheet
+        self.sheetname = user_sheetname
+        self.filename = user_filename
+        self.workbook = load_workbook(self.filename)
+        self.sheet = self.workbook[sheetname]
         
         self.column_dict = {}
         j=0
@@ -42,12 +44,17 @@ Class SheetObject:
     #def __next__(self):
     #    not implemented
     
-    def is_valid_entry(self, new_entry):
+    def is_valid_entry(self, new_entry, is_full=False):
         """
         New entries are assumed to be dictionaries.
         """
         set_of_entry_keys = set(new_entry.keys())
-        return set_of_entry_keys.is_subset(self.set_of_keys)
+        if is_full == False:
+            return set_of_entry_keys.is_subset(self.set_of_keys)
+        elif is_full == True:
+            return set_of_entry_keys == self.set_of_keys
+        else:
+            raise ValueError('is_full must be True or False)
 
         
     def append(self, new_entry):
@@ -59,13 +66,15 @@ Class SheetObject:
             self.sheet.append(new_row)
             
         else:
-            return ValueError
+            raise ValueError('entry keys do not match spreadsheet headings')
             
             
     def get(self,partial_entry):
         """
         --INPUT: partial_entry is a dictionary which has a subset of self.keys for entries.
         --OUTPUT: this function will return all the elements of the spreadsheet as dictionaries whose entries matches those that we searched for.
+    
+        (If you pass an empty string, it should give you all the entries as a dictionary)
         """
         if self.is_valid_entry(partial_entry):
             entry_keys = partial_entry.keys()
@@ -84,11 +93,50 @@ Class SheetObject:
             return matches
             
         else:
-            return ValueError #you were trying to look-up some bogus shit
+            raise ValueError('you were trying to look-up some bogus shit')
             
-    def remove(self, partial_entry):
+    def get_index(self,entries):
+        """
+        get a list of indices for a given set of entries.
+        entries is a list of dictionaries.
+        all dictionaries must match all the keys.
+        """
         
+        raise NotImplementedError("Didn't get to this yet")
+    
+    
+    def remove(self, entries=[], list_of_row_indices=[]):
+        """
+        Take a list of dictionaries or a list of rows and remove entries.
+        """
+        n = len(list_of_row_indices)
+        m = len(entries)
+        
+        if (n!=0) and (m!=0):
+            raise ValueError("input must be a list of dictionaries or a list of row indices but not both")
+        
+        elif n!=0 and m==0:
+            sorted_indices_for_deletion = sorted(list_of_row_indices).reverse() #remove large to small indices so
+            for i in sorted_indices_for_deletion:
+                self.sheet.delete_rows(idx=i)
+                
+            return "rows have been removed"
+                
+        elif n==0 and m!=0:
             
+            list_or_row_ind = []
+            
+            for entry in entries:
+                
+                if is_valid_entry(entry,is_full=True)==False:
+                    raise ValueError("all entries must specify a complete set of keys")
+                
+                list_of_row_ind.append(self.get_index(entry))
+                
+            self.remove(list_of_row_indices=list_of_row_ind)
+            
+        
+        
     def row_to_dict(self, row):
         """
         Converts a given row to a dictionary.
@@ -99,3 +147,7 @@ Class SheetObject:
             row_as_dictionary[self.keys[i]] = row[i]
             
         return row_as_dictionary
+        
+    def save(self,user_filename):
+        self.workbook.save(filename=user_filename)
+        
