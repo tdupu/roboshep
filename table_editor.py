@@ -1,5 +1,5 @@
 from openpyxl import *
-import table_functions.pytabe
+import table_functions.py
 
 Class SheetObject:
     """
@@ -135,7 +135,6 @@ Class SheetObject:
                 
             self.remove(list_of_row_indices=list_of_row_ind)
             
-        
         
     def row_to_dict(self, row):
         """
