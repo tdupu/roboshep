@@ -1,16 +1,27 @@
-#
-# Author: Taylor Dupuy 7/1/2020
-#
-#
-#
+
+"""
+Authors: Taylor Dupuy and David Kewei Lin, 7/1/2020
+
+INSTRUCTIONS:
+To run the bot one needs to go into Zulip and download the zuliprc file.
+    zulip-run-bot roboshep --config-file /Users/taylordupuy/Dropbox/computing/dupuy-zulip-bots/zuliprc
+I found that I need to run this from the path of the zuliprc file with the full path of the zuliprc file in the name.
+
+"""
+
+
+import sys
+#your need to modify this to your local working directory
+sys.path.append('/Library/Python/3.7/site-packages/zulip_bots/bots/roboshep')
+
 from typing import Any, Dict, List, Tuple
 import zulip
 #import python3 #don't do this, it breaks.
 import re #https://docs.python.org/3/library/re.html
 from openpyxl import * #I had to install this using pip3, this is for excel
-from /Library/Python/3.7/site-packages/zulip_bots/bots/roboshep/table_functions import *
-from /Library/Python/3.7/site-packages/zulip_bots/bots/roboshep/mod_functions import *
-from /Library/Python/3.7/site-packages/zulip_bots/bots/roboshep/table_editor import *
+from table_functions import *
+from mod_functions import *
+from table_editor import *
 
 
 HELP_MESSAGE = """
@@ -157,7 +168,7 @@ class RoboModHandler:
             workbook = load_workbook(filename='agittoc.xlsx')
             seeking_members_sheet = workbook["seeking_members"]
             
-        elif command_word == 'this_group_is_dead":
+        elif command_word == 'this_group_is_dead':
             msg = "NOT IMPLEMENTED, but... this will add this stream to a list of inactive streams so new members will not be added to this stream."
             
             #msg = "This stream is no longer accepting new members."
@@ -172,7 +183,7 @@ class RoboModHandler:
                 self.notepad_type = proposed_type
                 msg = "notepad type: %s " % self.notepad_type
             else:
-                msg = "type %s not allowed! \n No changes made. " % proposed_type
+                msg = "type %s not allowed! \n No changes made. Only streams, " % proposed_type
                 
         elif command_word == 'add_me_to':
             #maybe this should be "subscribe" to go along with their lingo
@@ -253,55 +264,49 @@ class RoboModHandler:
         list_of_dicts_of_streams = weird_dict_of_streams['streams']
         #print(list_of_dicts_of_streams) #this works
         
+        weird_dict_of_users = self.client.get_members()
+        list_of_dicts_of_users = weird_dict_of_users['members']
+        
         my_streams = []
-        mystreamquery = self.make_inclusive_search_key('streamnames')
+        mystreamquery = make_inclusive_search_key(streamnames)
+        print(mystreamquery)
         
         for dict0 in list_of_dicts_of_streams:
             if re.search(mystreamquery,dict0['name']):
+                #print("hello")
                 #print(dict0['stream_id']) #neverprinted
                 my_streams.append(dict0)
+                #print(my_streams)
                 #msg = msg+'taylor was here' #this was me trying to debug
-        
-        #if datatype == 'user_groups':
-        #    weird_dict_of_user_groups = self.client.get_user_groups()
-        #    print(weird_dict_of_user_groups)
-        #    list_of_dicts_of_user_groups =weird_dict_of_user_groups['user_groups']
-        #
-        #    my_user_groups = []
-        #    myuserquery = self.make_inclusive_search_key(self.notepad)
-        #
-        #    for dict0 in list_of_dicts_of_user_groups:
-        #        if re.search(myuserquery,dict0['name']):
-        #            my_user_groups.append(dict0)
-        #
-        #    my_principals = [] #this is what Zulip calls lists of user_id's or emails
-        #    for dict0 in my_user_groups:
-        #        members = dict0['members']
-        #        for member in members:
-        #            if my_principals.count(member)==0:
-        #                my_principals.append(member)
-        #
         
         if datatype == 'streams':
             my_streams2 = []
-            mystreamquery2 = self.make_inclusive_search_key('streamnames')
+            mystreamquery2 = make_inclusive_search_key(streamnames)
             
             for dict0 in list_of_dicts_of_streams:
                 if re.search(mystreamquery2,dict0['name']):
+                    print('you are here')
                     print(dict0)
                     my_streams2.append(dict0)
                     
             my_principals = [] #this is what Zulip calls lists of user_id's or emails
-            for dict0 in my_streams2:
-                    members = dict0['members']
-                    #msg = msg + "%s" % members never printed
-                    for member in members:
-                        if my_principals.count(member)==0:
-                            my_principals.append(member)
+            #someone could take away my PhD for what I'm about to do...
+            
+            #
+            # THIS IS BROKEN. WE NEED A WAY TO COMPARE USERS TO STREAMS.
+            #
+            for user in list_of_dicts_of_users:
+                for dict0 in my_streams2:
+                    stream_id = dict0['stream_id']
+                    user_id = user['user_id']
+                    has_not_been_counted =(my_principals.count(user_id)==0)
+                    is_a_member =
+                    if has_not_been_counted and is_a_member:
+                        my_principals.append(user_id)
                             
         #final touches
-        #print(my_principals) #empty
-        #print(my_streams) #empty
+        print(my_principals) #empty
+        print(my_streams) #empty
         self.client.add_subscriptions(streams=my_streams, principals=my_principals)
         msg = msg + 'added %s to %s ' % (my_principals, my_streams)
         return msg
@@ -311,7 +316,6 @@ class RoboModHandler:
 ##################################
 ###helper functions for the client
 ##################################
-
         
     def subscribe_usergroup_to_stream(self, my_user_group,my_stream):
         """
@@ -346,6 +350,9 @@ class RoboModHandler:
         """
         my_user_group = get_users_from_groupname(mygroupname)
         subscribe_usergroup_to_stream(my_user_group,mystreamname)
+        
+    def is_member_of(user_id,stream_name):
+        
         
     #
     # The two function above are REQUIRED by Zulip.
