@@ -8,7 +8,9 @@ import zulip
 #import python3 #don't do this, it breaks.
 import re #https://docs.python.org/3/library/re.html
 from openpyxl import * #I had to install this using pip3, this is for excel
-import table_editor.py
+from /Library/Python/3.7/site-packages/zulip_bots/bots/roboshep/table_functions import *
+from /Library/Python/3.7/site-packages/zulip_bots/bots/roboshep/mod_functions import *
+from /Library/Python/3.7/site-packages/zulip_bots/bots/roboshep/table_editor import *
 
 
 HELP_MESSAGE = """
@@ -237,43 +239,7 @@ class RoboModHandler:
     def get_all_stream_names(self) -> List:
         all_streams = self.client.get_streams()["streams"]
         return [stream["name"] for stream in all_streams]
-    
-    
-    ########################################
-    ###Functions to Help With Searches
-    ########################################
 
-    def make_inclusive_search_key(self,words):
-        """
-        >>> words = ['apple','banana','c']
-        >>> key=make_inclusive_search_key(words)
-        "^(apple|banana|c)"
-        >>> re.search(key,"copper")
-        True
-        
-        we could have also used "starts with"
-        """
-        # search_key = "("
-        # n = len(words)
-        
-        # for i in range(n-1):
-        #     search_key = search_key + words[i]+ "|"
-        
-        # #we do the last one separately to close it off
-        # search_key = "^"+search_key+words[n-1]+")"
-        
-        return f"^({'|'.join(words)})"
-        
-    def match_key(self, my_list_of_dicts, dictionary_key, myvalues):
-        """
-        This needs to be debugged
-        """
-        possibles =[]
-        my_search_key = self.make_inclusive_search_key(myvalues)
-        for dict0 in list_of_dicts:
-            if re.search(my_search_key, dict0[dictionary_key]):
-                possibles.append(dict0)
-        return possibles
 
 ##################################
 ##################################
@@ -294,7 +260,7 @@ class RoboModHandler:
             if re.search(mystreamquery,dict0['name']):
                 #print(dict0['stream_id']) #neverprinted
                 my_streams.append(dict0)
-                msg = msg+'taylor was here' #this was me trying to debug
+                #msg = msg+'taylor was here' #this was me trying to debug
         
         #if datatype == 'user_groups':
         #    weird_dict_of_user_groups = self.client.get_user_groups()
@@ -370,7 +336,7 @@ class RoboModHandler:
         """
         some_weird_dictionary = self.client.get_streams()
         list_of_streams = weird_dictionary['streams']
-        my_list_of_streams = self.match_key(list_of_streams,'name',mystreamname)
+        my_list_of_streams = match_key(list_of_streams,'name',mystreamname)
         return my_list_of_streams
         
         
