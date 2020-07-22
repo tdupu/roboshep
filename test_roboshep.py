@@ -11,3 +11,4 @@ class TestHelpBot(BotTestCase, DefaultTests):
         ]
 
         self.verify_dialog(dialog)
+
