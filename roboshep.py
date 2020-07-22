@@ -352,11 +352,8 @@ class RoboModHandler:
         subscribe_usergroup_to_stream(my_user_group,mystreamname)
         
     def is_member_of(user_id,stream_name):
+        raise NotImplementedError
         
-        
-    #
-    # The two function above are REQUIRED by Zulip.
-    #
 
 handler_class = RoboModHandler
 
