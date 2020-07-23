@@ -23,12 +23,12 @@ class SheetObject:
         #read off the first row of the spreadsheet keep track of which column has which entry
         self.sheetname = user_sheetname
         self.filename = user_filename
-        self.workbook = load_workbook(self.filename)
-        self.sheet = self.workbook[sheetname]
+        self._workbook = load_workbook(self.filename)
+        self._sheet = self._workbook[self.sheetname]
         
         self.column_dict = {}
         j=0
-        for value in self.sheet.inter_rows(min_row=1,max_row=1,values_only=True):
+        for value in self._sheet.iter_rows(min_row=1,max_row=1,values_only=True):
             j=j+1
             self.column_dict[j]=value
             
@@ -51,10 +51,13 @@ class SheetObject:
         New entries are assumed to be dictionaries.
         """
         set_of_entry_keys = set(new_entry.keys())
-        if is_full == False:
-            return set_of_entry_keys.is_subset(self.set_of_keys)
-        elif is_full == True:
+        
+        if (is_full == False):
+            return set_of_entry_keys.issubset(self.set_of_keys)
+            
+        elif (is_full == True):
             return set_of_entry_keys == self.set_of_keys
+            
         else:
             raise ValueError('is_full must be True or False')
 
@@ -65,7 +68,7 @@ class SheetObject:
         """
         if self.is_valid_entry(new_entry):
             new_row = [ new_entry[self.column_dict[i+1]] for i in range(self.number_of_keys)]
-            self.sheet.append(new_row)
+            self._sheet.append(new_row)
             
         else:
             raise ValueError('entry keys do not match spreadsheet headings')
@@ -78,12 +81,14 @@ class SheetObject:
     
         (If you pass an empty string, it should give you all the entries as a dictionary)
         """
-        if self.is_valid_entry(partial_entry):
+        X = self.is_valid_entry(partial_entry)
+        
+        if X:
             entry_keys = partial_entry.keys()
             
             matches = []
             
-            for row in self.sheet.iter_rows(min_row=2,values_only=True):
+            for row in self._sheet.iter_rows(min_row=2,values_only=True):
                 
                 #first convert the row to a dictionary
                 row_as_dictionary = self.row_to_dict(row)
@@ -95,7 +100,7 @@ class SheetObject:
             return matches
             
         else:
-            raise ValueError('you were trying to look-up some bogus shit')
+            raise ValueError('is_valid_entry returns %s' % X)
             
     def get_index(self,entries):
         """
@@ -120,7 +125,7 @@ class SheetObject:
         elif n!=0 and m==0:
             sorted_indices_for_deletion = sorted(list_of_row_indices).reverse() #remove large to small indices so
             for i in sorted_indices_for_deletion:
-                self.sheet.delete_rows(idx=i)
+                self._sheet.delete_rows(idx=i)
                 
             return "rows have been removed"
                 
@@ -150,5 +155,5 @@ class SheetObject:
         return row_as_dictionary
         
     def save(self,user_filename):
-        self.workbook.save(filename=user_filename)
+        self._workbook.save(filename=user_filename)
         
