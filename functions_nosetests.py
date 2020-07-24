@@ -51,7 +51,7 @@ def test_set_of_keys():
     S = SheetObject('testbook.xlsx','Sheet1')
     set_of_keys = S.set_of_keys
     answer = set(['name','age','rank'])
-    assert set_of_keys =='testbook.xlsx'
+    assert set_of_keys == answer
 
 def test_number_of_keys():
     S = SheetObject('testbook.xlsx','Sheet1')
@@ -85,25 +85,60 @@ def test_valid_new_entry():
 
     
 def test_get_entries1():
+    """
+    Tests for a good partial query when passed as a variable
+    """
     S = SheetObject('testbook.xlsx','Sheet1')
-    is_it_ok3 = S.is_valid_entry({'rank':'captain'})
-    assert (is_it_ok3 ==True)
-    
+    partial_entry = {'rank':'captain'}
+    is_it_ok = S.is_valid_entry(partial_entry)
+    assert (is_it_ok == True)
+
 def test_get_entries2():
+    """
+    Tests for a good partial query when passed directly
+    """
+    S = SheetObject('testbook.xlsx','Sheet1')
+    is_it_ok = S.is_valid_entry({'rank':'captain'})
+    assert (is_it_ok == True)
+
+    
+def test_get_entries3():
+    """
+    Tests for a good partial query when passed directly
+    """
+    S = SheetObject('testbook.xlsx','Sheet1')
+    is_it_ok3 = S.is_valid_entry({'rank':'captain'},is_full=True)
+    assert (is_it_ok3 == False)
+    
+def test_get_entries4():
     S = SheetObject('testbook.xlsx','Sheet1')
     entries = S.get({'rank':'captain'})
-    answer = [{'name':'Joe', 'age':1, 'rank':'captain'}, {'name':'Mary', 'age':4, 'rank':'captain' }]
+    answer = [{'name':'joe', 'age':1, 'rank':'captain'}, {'name':'mary', 'age':4, 'rank':'captain' }]
     assert (entries==answer)
-    
 
-def test_get_index():
-    assert True
+def test_get_by_index():
+    S = SheetObject('testbook.xlsx','Sheet1')
+    output= S.get_by_excel_row_index(2)
+    answer={'name':'joe', 'age':1, 'rank':'captain'}
+    assert output == answer
     
-def test_row_to_dict():
-    assert True
+def test_append_and_save():
+    S = SheetObject('testbook.xlsx','Sheet1')
+    a=S.number_of_entries()
+    new_entry ={'name':'taylor', 'age':36, 'rank':'asst prof'}
+    S.append(new_entry)
+    S.save('testtestbook.xlsx')
+    SS = SheetObject('testtestbook.xlsx','Sheet1')
+    b=SS.number_of_entries()
+    is_ok = (a+1==b)
+    last_entry = SS.get_by_excel_row_index(b+1)
+    is_ok2 = (last_entry == new_entry )
+    both_ok = (is_ok and is_ok2)
+    assert both_ok == True
+    
+def test_has_entry():
+    S = SheetObject('testbook.xlsx','Sheet1')
+    assert S.has_entry({'name':'joe', 'age':1, 'rank':'captain'})==True
     
 def test_save():
-    assert True
-    
-def test_remover():
     assert True
