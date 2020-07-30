@@ -300,7 +300,7 @@ class RoboModHandler:
                     stream_id = dict0['stream_id']
                     user_id = user['user_id']
                     has_not_been_counted =(my_principals.count(user_id)==0)
-                    is_a_member =
+                    is_a_member = False
                     if has_not_been_counted and is_a_member:
                         my_principals.append(user_id)
                             
